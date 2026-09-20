@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Intchains ASIC Datasheet</title>
+<style>
+:root{
+  color-scheme: light dark;
+  --paper:#eeece8; --sheet:#fbfaf8; --sheet2:#f2f0ec; --sheet3:#e6e3dd;
+  --ink:#1c1b19; --ink2:#42403c; --mute:#6d6a63;
+  --rule:#cdc9c1; --rule2:#e0dcd4;
+  --accent:#39397e; --accent-soft:#e4e4f2;
+  --tx:#8c4a12; --tx-bg:#f6e8dc; --rx:#155f6c; --rx-bg:#dcedf0;
+  --v:#2c6146; --v-bg:#dfeee6;
+  --o:#84631a; --o-bg:#f5ead2;
+  --s:#8e3457; --s-bg:#f6e2e9;
+  --shade:0 1px 0 rgba(28,27,25,.05), 0 8px 20px -16px rgba(28,27,25,.4);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#131211; --sheet:#1c1b19; --sheet2:#232120; --sheet3:#2c2a27;
+  --ink:#e8e5df; --ink2:#c0bcb4; --mute:#8b8781;
+  --rule:#35322e; --rule2:#292724;
+  --accent:#9a9ae8; --accent-soft:#22223c;
+  --tx:#e0964f; --tx-bg:#2a1d13; --rx:#63c4d6; --rx-bg:#10262c;
+  --v:#79c8a1; --v-bg:#18291f;
+  --o:#d8b158; --o-bg:#2a2314;
+  --s:#e08aa8; --s-bg:#2c1720;
+  --shade:0 1px 0 rgba(0,0,0,.4), 0 10px 24px -18px #000;
+}}
+:root[data-theme="dark"]{
+  --paper:#131211; --sheet:#1c1b19; --sheet2:#232120; --sheet3:#2c2a27;
+  --ink:#e8e5df; --ink2:#c0bcb4; --mute:#8b8781;
+  --rule:#35322e; --rule2:#292724;
+  --accent:#9a9ae8; --accent-soft:#22223c;
+  --tx:#e0964f; --tx-bg:#2a1d13; --rx:#63c4d6; --rx-bg:#10262c;
+  --v:#79c8a1; --v-bg:#18291f;
+  --o:#d8b158; --o-bg:#2a2314;
+  --s:#e08aa8; --s-bg:#2c1720;
+  --shade:0 1px 0 rgba(0,0,0,.4), 0 10px 24px -18px #000;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  /* deliberately no font-family and no absolute size: inherit the reader's own defaults */
+  font-family:initial; font-size:medium; line-height:1.6;
+  background:var(--paper); color:var(--ink);
+}
+.wrap{max-width:74rem;margin:0 auto;padding:0 1.4rem 5.5rem}
+.col{}
+.mono,code,pre,.m,td.m,th.m,caption,.badge,.meta,thead th,h2 .num,h3 .num,footer{font-family:monospace}
+
+header{border-bottom:3px double var(--ink);padding:2.4rem 0 1rem;margin-bottom:.5rem}
+.pn{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin:0 0 .7rem;font-weight:700;font-family:monospace}
+h1{font-weight:700;font-size:clamp(1.9rem,5vw,3.1rem);line-height:1.05;letter-spacing:.02em;
+   text-transform:uppercase;margin:0 0 .5rem;text-wrap:balance}
+.tag{font-size:1.08rem;color:var(--ink2);margin:0}
+.meta{display:flex;flex-wrap:wrap;gap:.3rem 1.7rem;font-size:.72rem;color:var(--mute);margin-top:1.1rem}
+.meta b{color:var(--ink2);font-weight:500}
+
+.legend{display:flex;flex-wrap:wrap;gap:.6rem;margin:1.3rem 0 2rem;padding:.8rem .9rem;
+  background:var(--sheet);border:1px solid var(--rule);box-shadow:var(--shade)}
+.legend p{margin:0;font-size:.86rem;color:var(--ink2);flex:1 1 17rem;min-width:15rem}
+.badge{font-size:.62rem;font-weight:700;letter-spacing:.09em;padding:.1rem .35rem;
+  text-transform:uppercase;white-space:nowrap;border-radius:2px}
+.v{background:var(--v-bg);color:var(--v);border:1px solid var(--v)}
+.o{background:var(--o-bg);color:var(--o);border:1px solid var(--o)}
+.s{background:var(--s-bg);color:var(--s);border:1px solid var(--s)}
+
+section{margin:0 0 2.8rem;scroll-margin-top:1rem}
+h2{font-weight:700;font-size:1.5rem;text-transform:uppercase;letter-spacing:.03em;margin:0 0 .8rem;
+   padding-bottom:.4rem;border-bottom:2px solid var(--ink);display:flex;gap:.8rem;align-items:baseline}
+h2 .num{font-size:.85rem;color:var(--accent);font-weight:700}
+h3{font-weight:700;font-size:1.05rem;text-transform:uppercase;letter-spacing:.04em;margin:1.6rem 0 .45rem}
+h3 .num{font-size:.75rem;color:var(--mute);margin-right:.5rem;text-transform:none;font-weight:400}
+p,li{overflow-wrap:break-word;text-wrap:pretty}
+p{margin:0 0 .8rem}
+ul,ol{margin:0 0 .8rem;padding-left:1.3rem}li{margin:0 0 .35rem}
+code{font-size:.86em;background:var(--sheet3);padding:.05em .3em;border-radius:2px;
+  overflow-wrap:break-word;word-break:normal}
+a{color:var(--accent)}
+sup{font-size:.7em}
+
+.tw{overflow-x:auto;margin:0 0 1rem;border:1px solid var(--rule);background:var(--sheet);box-shadow:var(--shade)}
+table{border-collapse:collapse;width:100%;font-size:.82rem}
+caption{caption-side:top;text-align:left;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mute);padding:.55rem .8rem .4rem;border-bottom:1px solid var(--rule2)}
+th,td{text-align:left;padding:.42rem .8rem;border-bottom:1px solid var(--rule2);vertical-align:top}
+thead th{font-size:.63rem;letter-spacing:.09em;text-transform:uppercase;color:var(--mute);font-weight:700;
+  background:var(--sheet2);border-bottom:1.5px solid var(--rule);white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--sheet2)}
+.m,td.m,th.m{font-variant-numeric:tabular-nums;font-size:.95em;overflow-wrap:break-word}
+
+pre{font-size:.78rem;line-height:1.55;background:var(--sheet);border:1px solid var(--rule);
+  border-left:3px solid var(--accent);padding:.8rem 1rem;overflow-x:auto;margin:0 0 1rem;box-shadow:var(--shade)}
+pre .c{color:var(--mute)}pre .k{color:var(--accent)}
+
+.spec-note{border-left:3px solid var(--s);background:var(--s-bg);padding:.7rem .95rem;
+  margin:0 0 1rem;font-size:.92rem}
+.spec-note b{text-transform:uppercase;letter-spacing:.03em}
+
+figure{margin:0 0 1.1rem}
+.fig{border:1px solid var(--rule);background:var(--sheet);padding:1.1rem .8rem .6rem;overflow-x:auto;box-shadow:var(--shade)}
+figcaption{font-size:.8rem;color:var(--mute);margin-top:.5rem}
+svg{display:block;min-width:600px}
+
+ol.seq{list-style:none;counter-reset:q;padding:0;margin:0}
+ol.seq>li{counter-increment:q;position:relative;padding:0 0 .8rem 2.7rem;border-left:1px solid var(--rule);margin-left:.75rem}
+ol.seq>li:last-child{border-left-color:transparent;padding-bottom:0}
+ol.seq>li::before{content:counter(q,decimal-leading-zero);position:absolute;left:-.75rem;top:0;
+  width:1.5rem;height:1.5rem;background:var(--sheet);border:1px solid var(--rule);color:var(--accent);
+  font-family:monospace;font-size:.62rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+ol.seq>li b{text-transform:uppercase;letter-spacing:.03em;font-size:.95rem;display:block}
+ol.seq>li span{font-size:.92rem;color:var(--ink2)}
+
+footer{border-top:3px double var(--rule);margin-top:3rem;padding-top:1.1rem;font-size:.75rem;color:var(--mute);line-height:1.9}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="pn">ICT580 · ICC590 · ICA586 · ICC551 — host interface specification · rev 0.2</p>
+  <h1>Intchains ASIC Datasheet</h1>
+  <p class="tag">The SPI command, register and work-payload interface of the Intchains Blake2B mining ASICs used in Goldshell miners. Written as an implementation target: everything a replacement controller has to emit, and everything the chain emits back.</p>
+  <div class="meta">
+    <span><b>Method</b> static analysis · Goldshell <code>intminer</code> 2.2.x</span>
+    <span><b>Evidence</b> 63 firmware images · 12 products · 3 bound chip families</span>
+    <span><b>Silicon</b> not consulted · <b>Bus capture</b> none</span>
+  </div>
+</header>
+
+<div class="legend">
+  <p><span class="badge v">V</span> <b>Verified.</b> Read from executed code paths and consistent across every image examined.</p>
+  <p><span class="badge o">O</span> <b>Observed.</b> Read from one site or one product; correct as far as it goes, narrow evidence.</p>
+  <p><span class="badge s">S</span> <b>Speculative.</b> Inference or hypothesis. No direct evidence. Flagged inline, never mixed into normative text.</p>
+</div>
+
+<section id="s1">
+  <h2><span class="num">1</span>Overview</h2>
+  <div class="col">
+    <p>Each device is a Blake2B search engine with an on-chip PLL, a temperature sensor, and a serial port that daisy-chains to its neighbours. A controller board (CPB) drives one chain from a single SPI master port. Chips self-assign addresses at power-up; thereafter the host addresses them individually or broadcasts to all.</p>
+    <p>The host loads an identical work item to every chip on a chain, then polls for results. Work partitioning happens inside the chain — the host never assigns nonce ranges. Each result identifies the chip and core that produced it and the work item it belongs to.</p>
+  </div>
+
+  <figure>
+    <div class="fig">
+      <svg viewBox="0 0 900 175" role="img" aria-label="Host SoC drives one SPI chain per control board; chips daisy-chain and share reset, enable and power-enable">
+        <g font-family="monospace" font-size="11">
+          <rect x="2" y="42" width="132" height="72" fill="var(--accent-soft)" stroke="var(--accent)"/>
+          <text x="68" y="68" text-anchor="middle" fill="var(--ink)" font-weight="700">HOST SoC</text>
+          <text x="68" y="84" text-anchor="middle" fill="var(--mute)" font-size="9.5">ARM · Linux 3.10</text>
+          <text x="68" y="98" text-anchor="middle" fill="var(--mute)" font-size="9.5">/dev/spidevN.M</text>
+
+          <line x1="134" y1="62" x2="196" y2="62" stroke="var(--ink)"/>
+          <line x1="134" y1="78" x2="196" y2="78" stroke="var(--ink)"/>
+          <line x1="134" y1="94" x2="196" y2="94" stroke="var(--ink)"/>
+          <text x="165" y="58" text-anchor="middle" fill="var(--mute)" font-size="8.5">SCLK</text>
+          <text x="165" y="74" text-anchor="middle" fill="var(--mute)" font-size="8.5">MOSI</text>
+          <text x="165" y="90" text-anchor="middle" fill="var(--mute)" font-size="8.5">MISO</text>
+
+          <rect x="196" y="26" width="700" height="104" fill="none" stroke="var(--rule)" stroke-dasharray="4 3"/>
+          <text x="206" y="20" fill="var(--mute)" font-size="9.5">CONTROL &amp; POWER BOARD (CPB) — 1 to 4 per miner</text>
+
+          <rect x="216" y="48" width="96" height="60" fill="var(--sheet2)" stroke="var(--ink)"/>
+          <text x="264" y="72" text-anchor="middle" fill="var(--ink)" font-weight="700">CHIP 1</text>
+          <text x="264" y="88" text-anchor="middle" fill="var(--mute)" font-size="9">addr 0x01</text>
+          <rect x="340" y="48" width="96" height="60" fill="var(--sheet2)" stroke="var(--ink)"/>
+          <text x="388" y="72" text-anchor="middle" fill="var(--ink)" font-weight="700">CHIP 2</text>
+          <text x="388" y="88" text-anchor="middle" fill="var(--mute)" font-size="9">addr 0x02</text>
+          <text x="492" y="82" text-anchor="middle" fill="var(--mute)" font-size="15">· · ·</text>
+          <rect x="540" y="48" width="112" height="60" fill="var(--sheet2)" stroke="var(--ink)"/>
+          <text x="596" y="72" text-anchor="middle" fill="var(--ink)" font-weight="700">CHIP N</text>
+          <text x="596" y="88" text-anchor="middle" fill="var(--mute)" font-size="9">N = 16 … 96</text>
+          <line x1="312" y1="78" x2="340" y2="78" stroke="var(--ink)"/>
+          <line x1="436" y1="78" x2="468" y2="78" stroke="var(--ink)"/>
+          <line x1="516" y1="78" x2="540" y2="78" stroke="var(--ink)"/>
+
+          <rect x="686" y="48" width="200" height="60" fill="none" stroke="var(--rule)"/>
+          <text x="786" y="66" text-anchor="middle" fill="var(--ink2)" font-size="10">RESET · ENABLE · PLUGIN (GPIO)</text>
+          <text x="786" y="82" text-anchor="middle" fill="var(--ink2)" font-size="10">ISL8118 rail · TMP112 ×1–2</text>
+          <text x="786" y="98" text-anchor="middle" fill="var(--mute)" font-size="9">host-driven, not on the chain</text>
+
+          <text x="216" y="152" fill="var(--mute)" font-size="9.5">Reply latency grows 6 bytes per chip hop — see §6.</text>
+        </g>
+      </svg>
+    </div>
+    <figcaption>One SPI master per CPB. A miner has one to four CPBs; the protocol below is per-chain and identical on all of them.</figcaption>
+  </figure>
+</section>
+
+<section id="s2">
+  <h2><span class="num">2</span>Device family</h2>
+  <div class="col">
+    <p>Four back-ends exist in the controller software. Three are bound in shipping products; <code>ICC551</code> is compiled in but no product reaches it.</p>
+  </div>
+  <div class="tw">
+    <table>
+      <caption>Table 2‑1 · Family parameters</caption>
+      <thead><tr><th>Part</th><th class="m">Cores/chip</th><th class="m">Work payload</th><th class="m">Nonce ceiling</th><th class="m">SPI</th><th>Seen in</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td><b>ICT580</b></td><td class="m">80</td><td class="m">48 pkt · 96 B</td><td class="m">0x0000FFFFFFFFFFFF</td><td class="m">500 kHz, mode 1</td><td>SCBox, SCBox II, SC6‑SE</td><td><span class="badge v">V</span></td></tr>
+        <tr><td><b>ICC590</b></td><td class="m">20</td><td class="m">72 pkt · 144 B</td><td class="m">0x0000FFFFFFFFFFFF</td><td class="m">500 kHz, mode 1</td><td>HS3, HS3‑SE, HS5, HS6, HS6‑SE, HS‑BOX, HS‑BOX II, HS‑LITE</td><td><span class="badge v">V</span></td></tr>
+        <tr><td><b>ICA586</b></td><td class="m">20</td><td class="m">56 pkt · 112 B</td><td class="m">0x00003FFFFFFFFFFF</td><td class="m">500 kHz, mode 1</td><td>SC5 Pro II</td><td><span class="badge v">V</span></td></tr>
+        <tr><td><b>ICC551</b></td><td class="m">— <sup>a</sup></td><td class="m">48 pkt · 96 B</td><td class="m">— <sup>a</sup></td><td class="m">500 kHz, mode 1</td><td>none — compiled in, never bound</td><td><span class="badge o">O</span></td></tr>
+        <tr><td><b>ICA590</b></td><td class="m" colspan="4">Not a back-end. A configuration name only <sup>b</sup></td><td>HS‑BOX II (runs ICC590)</td><td><span class="badge v">V</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col">
+    <p><sup>a</sup> Cores per chip and the nonce ceiling are properties of the <i>build</i>, not of the back-end: both are compile-time constants in the controller rather than fields of the chip driver. Because no product binds ICC551, neither value exists anywhere to be read. Its payload length, SPI rate, PLL mask and command table are back-end properties and are recorded above.</p>
+    <p><sup>b</sup> The chip type is fixed at build time and the <code>chips.model</code> string in the configuration file is never compared against anything — it is documentation, not selection. HS‑BOX II declares <code>ICA590</code>, a name with no corresponding back-end, and runs ICC590. Treat configuration model strings as unreliable.</p>
+    <p>Everything in sections 3 through 12 is common to all parts except the work payload length (§9) and the nonce ceiling. Verified as identical across all four back-ends: the frame grammar and complete command table (byte-identical apart from the work packet count), the 500 kHz SPI rate and mode, the PLL mask <code>0xFE00FC8F</code>, and the PLL divider table. A fifth mask, <code>0xFE00FC0D</code>, exists in an unbound generic helper and applies to none of these parts.</p>
+  </div>
+</section>
+
+<section id="s3">
+  <h2><span class="num">3</span>Host interface</h2>
+  <div class="tw">
+    <table>
+      <caption>Table 3‑1 · SPI master configuration</caption>
+      <thead><tr><th>Parameter</th><th class="m">Value</th><th>Notes</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Clock rate</td><td class="m">500 000 Hz</td><td>Identical in all four back-ends. No product overrides it.</td><td><span class="badge v">V</span></td></tr>
+        <tr><td>Mode</td><td class="m">1 (CPOL 0, CPHA 1)</td><td>Sampled on the falling edge.</td><td><span class="badge v">V</span></td></tr>
+        <tr><td>Word size</td><td class="m">8 bits</td><td>Frames are built as byte streams; 16‑bit structure is logical.</td><td><span class="badge v">V</span></td></tr>
+        <tr><td>Bit order</td><td class="m">MSB first</td><td>Standard spidev default; never overridden.</td><td><span class="badge v">V</span></td></tr>
+        <tr><td>Transaction</td><td class="m">1 full‑duplex transfer</td><td>One <code>SPI_IOC_MESSAGE(1)</code> carries request, turnaround and reply.</td><td><span class="badge v">V</span></td></tr>
+        <tr><td>Max transfer</td><td class="m">262 143 B</td><td>Host-side buffer limit, not a device limit.</td><td><span class="badge o">O</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+<pre><span class="c">/* Bring the port up exactly as the controller does. */</span>
+fd = open(spi_path, O_RDWR);                            <span class="c">/* one device per CPB */</span>
+ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &amp;(uint32_t){500000});
+ioctl(fd, SPI_IOC_WR_MODE,          &amp;(uint8_t) {1});
+ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &amp;(uint8_t) {8});</pre>
+  <div class="col">
+    <p>There is no separate read transaction and no interrupt or ready line. A command is one transfer whose transmit buffer holds the request frame followed by enough filler bytes to clock the reply back out of the chain (§6). The controller then searches the receive buffer for the expected reply.</p>
+  </div>
+</section>
+
+<section id="s4">
+  <h2><span class="num">4</span>Frame format</h2>
+  <div class="col">
+    <p>The unit of framing is a 16‑bit <b>packet</b>, transmitted most-significant byte first. A frame is five fields, two of which are always present.</p>
+  </div>
+
+  <figure>
+    <div class="fig">
+      <svg viewBox="0 0 940 232" role="img" aria-label="One transaction: request frame plus filler on MOSI, reply frame on MISO">
+        <defs>
+          <pattern id="hatch" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+            <line x1="0" y1="0" x2="0" y2="6" stroke="var(--rule)" stroke-width="3"/>
+          </pattern>
+        </defs>
+        <g font-family="monospace" font-size="11.5">
+          <text x="0" y="22" fill="var(--tx)" font-size="11" font-weight="700" letter-spacing="1.2">MOSI · HOST → CHAIN</text>
+          <g transform="translate(0,32)">
+            <rect x="0" y="0" width="78" height="40" fill="var(--tx-bg)" stroke="var(--tx)"/>
+            <rect x="78" y="0" width="78" height="40" fill="var(--tx-bg)" stroke="var(--tx)"/>
+            <rect x="156" y="0" width="240" height="40" fill="var(--tx-bg)" stroke="var(--tx)"/>
+            <rect x="396" y="0" width="78" height="40" fill="var(--tx-bg)" stroke="var(--tx)"/>
+            <rect x="474" y="0" width="78" height="40" fill="var(--tx-bg)" stroke="var(--tx)"/>
+            <rect x="552" y="0" width="388" height="40" fill="url(#hatch)" stroke="var(--rule)"/>
+            <text x="39" y="18" text-anchor="middle" fill="var(--ink)" font-weight="700">A5 3C</text>
+            <text x="39" y="32" text-anchor="middle" fill="var(--mute)" font-size="9.5">preamble</text>
+            <text x="117" y="18" text-anchor="middle" fill="var(--ink)" font-weight="700">cmd</text>
+            <text x="117" y="32" text-anchor="middle" fill="var(--mute)" font-size="9.5">Y O NN</text>
+            <text x="276" y="18" text-anchor="middle" fill="var(--ink)" font-weight="700">payload · 0…72 packets</text>
+            <text x="276" y="32" text-anchor="middle" fill="var(--mute)" font-size="9.5">omitted when the command takes none</text>
+            <text x="435" y="18" text-anchor="middle" fill="var(--ink)" font-weight="700">CRC16</text>
+            <text x="435" y="32" text-anchor="middle" fill="var(--mute)" font-size="9.5">optional</text>
+            <text x="513" y="18" text-anchor="middle" fill="var(--ink)" font-weight="700">00 00</text>
+            <text x="513" y="32" text-anchor="middle" fill="var(--mute)" font-size="9.5">tail</text>
+            <text x="746" y="18" text-anchor="middle" fill="var(--ink2)" font-weight="700">filler 0x00 × (6·addr, or 900 broadcast)</text>
+            <text x="746" y="32" text-anchor="middle" fill="var(--mute)" font-size="9.5">keeps SCLK running while the reply propagates back</text>
+          </g>
+          <g stroke="var(--rule)" fill="none">
+            <path d="M0 80 L0 86 L552 86 L552 80"/><path d="M276 86 L276 92"/>
+          </g>
+          <text x="276" y="104" text-anchor="middle" fill="var(--mute)" font-size="10">CRC covers preamble + cmd + payload</text>
+
+          <text x="0" y="144" fill="var(--rx)" font-size="11" font-weight="700" letter-spacing="1.2">MISO · CHAIN → HOST</text>
+          <g transform="translate(0,154)">
+            <rect x="0" y="0" width="300" height="40" fill="none" stroke="var(--rule)" stroke-dasharray="3 3"/>
+            <text x="150" y="24" text-anchor="middle" fill="var(--mute)">undefined until the chain answers</text>
+            <rect x="300" y="0" width="78" height="40" fill="var(--rx-bg)" stroke="var(--rx)"/>
+            <rect x="378" y="0" width="78" height="40" fill="var(--rx-bg)" stroke="var(--rx)"/>
+            <rect x="456" y="0" width="220" height="40" fill="var(--rx-bg)" stroke="var(--rx)"/>
+            <rect x="676" y="0" width="78" height="40" fill="var(--rx-bg)" stroke="var(--rx)"/>
+            <rect x="754" y="0" width="78" height="40" fill="var(--rx-bg)" stroke="var(--rx)"/>
+            <text x="339" y="18" text-anchor="middle" fill="var(--ink)" font-weight="700">A5 3C</text>
+            <text x="417" y="18" text-anchor="middle" fill="var(--ink)" font-weight="700">cmd</text>
+            <text x="417" y="32" text-anchor="middle" fill="var(--mute)" font-size="9.5">echo or tagged</text>
+            <text x="566" y="18" text-anchor="middle" fill="var(--ink)" font-weight="700">payload</text>
+            <text x="715" y="18" text-anchor="middle" fill="var(--ink)" font-weight="700">CRC16</text>
+            <text x="793" y="18" text-anchor="middle" fill="var(--ink)" font-weight="700">00 00</text>
+          </g>
+        </g>
+      </svg>
+    </div>
+    <figcaption>The reply is not at a fixed offset. The controller searches the receive buffer for the preamble, then matches the command word against the templates for the command in flight.</figcaption>
+  </figure>
+
+  <div class="tw">
+    <table>
+      <caption>Table 4‑1 · Frame fields, in transmission order</caption>
+      <thead><tr><th>Field</th><th class="m">Size</th><th>Value</th><th>Present</th></tr></thead>
+      <tbody>
+        <tr><td>Preamble</td><td class="m">1 pkt</td><td class="m">0xA53C</td><td>Always</td></tr>
+        <tr><td>Command</td><td class="m">1 pkt</td><td class="m">0xYONN — see §4.1</td><td>Always</td></tr>
+        <tr><td>Payload</td><td class="m">0–72 pkt</td><td>Command-specific (§7)</td><td>Per command</td></tr>
+        <tr><td>CRC</td><td class="m">1 pkt</td><td>CRC‑16/KERMIT over preamble + command + payload (§5)</td><td>Per command</td></tr>
+        <tr><td>Tail</td><td class="m">1 pkt</td><td class="m">0x0000</td><td>Always</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3><span class="num">4.1</span>Command word</h3>
+  <div class="col">
+    <p>Every command word is <code>0xYONN</code>:</p>
+    <ul>
+      <li><b>NN</b> — bits [7:0], chip address. <code>0x00</code> broadcasts to the chain; <code>0x01</code>…<code>N</code> address one chip. Addresses are assigned by the chain during auto-addressing (§7.2), not by the host. The address is a full byte on every product regardless of chain length.</li>
+      <li><b>O</b> — bits [11:8], opcode.</li>
+      <li><b>Y</b> — bits [15:12], tag. Zero on ordinary host requests. On <i>load work</i> it carries the 4‑bit work ID, and the chip returns that same ID with any result for that work. On a register read the chip replies with <code>Y = 1</code>.</li>
+    </ul>
+    <p>The controller matches replies against wildcard templates in which <code>N</code>, <code>X</code> and <code>Y</code> are don't-care characters — a reply to <code>0x0800</code> matches either <code>0800</code> (an echo) or <code>Y8NN</code> (a result). A reply matching no template for the command in flight is discarded and the transaction retried.</p>
+  </div>
+</section>
+
+<section id="s5">
+  <h2><span class="num">5</span>Checksum</h2>
+  <div class="col">
+    <p>CRC‑16/KERMIT: reflected CRC‑CCITT, polynomial <code>0x1021</code> reflected to <code>0x8408</code>, initial value <code>0x0000</code>, no final XOR. It covers the preamble, command and payload; the tail is excluded. The bytes of each 16‑bit packet are swapped before the CRC runs, which is the same as running it over the packet values serialized little‑endian. The 16‑bit result is transmitted MSB first like every other packet.</p>
+  </div>
+<pre><span class="k">uint16_t</span> ic_crc16(<span class="k">const uint8_t</span> *wire, <span class="k">size_t</span> len)   <span class="c">/* len MUST be even */</span>
+{
+    <span class="k">uint16_t</span> crc = 0;
+    <span class="k">for</span> (<span class="k">size_t</span> i = 0; i &lt; len; i++)
+        crc = kermit_tab[(crc ^ wire[i ^ 1]) &amp; 0xff] ^ (crc &gt;&gt; 8);
+    <span class="k">return</span> crc;                       <span class="c">/* transmit high byte first */</span>
+}</pre>
+  <div class="col">
+    <p>An odd length is a hard error in the reference implementation, which returns <code>0xFFFF</code> — a value no real checksum can match, so the frame is retried until the retry budget is exhausted.</p>
+  </div>
+</section>
+
+<section id="s6">
+  <h2><span class="num">6</span>Bus timing</h2>
+  <div class="col">
+    <p>The chain is a daisy chain and a reply propagates back through every chip between the target and the host. There is no flow control; the host must keep the clock running. After the request frame the host appends filler bytes of <code>0x00</code>.</p>
+  </div>
+  <div class="tw">
+    <table>
+      <caption>Table 6‑1 · Turnaround, in filler bytes appended after the frame</caption>
+      <thead><tr><th>Case</th><th class="m">Filler bytes</th><th>Notes</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Addressed, chip <i>a</i></td><td class="m">6 × a</td><td>Six bytes of latency per chip hop.</td><td><span class="badge v">V</span></td></tr>
+        <tr><td>Broadcast (address 0)</td><td class="m">900</td><td>Fixed; covers the longest chain in the family (96 × 6 = 576).</td><td><span class="badge v">V</span></td></tr>
+        <tr><td>Longer reply than request</td><td class="m">+ (reply_len − frame_len)</td><td>Added when positive, on top of the above.</td><td><span class="badge v">V</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col">
+    <p>This is the most load-bearing timing rule in the protocol. A controller that clocks too few bytes never sees the reply and will read the chain as dead.</p>
+  </div>
+</section>
+
+<section id="s7">
+  <h2><span class="num">7</span>Command reference</h2>
+  <div class="tw">
+    <table>
+      <caption>Table 7‑1 · Command summary. Packet counts are payload only.</caption>
+      <thead><tr><th class="m">Cmd</th><th>Name</th><th class="m">TX pkt</th><th class="m">Reply cmd</th><th class="m">RX pkt</th><th class="m">Retries</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td class="m">01NN</td><td>Self-test, phase 1</td><td class="m">—</td><td class="m">echo</td><td class="m">—</td><td class="m">0</td><td><span class="badge v">V</span></td></tr>
+        <tr><td class="m">0200</td><td>Auto-address / enumerate</td><td class="m">1</td><td class="m">echo</td><td class="m">1</td><td class="m">1</td><td><span class="badge v">V</span></td></tr>
+        <tr><td class="m">03NN</td><td>Self-test, phase 3</td><td class="m">—</td><td class="m">echo</td><td class="m">—</td><td class="m">0</td><td><span class="badge v">V</span></td></tr>
+        <tr><td class="m">04NN</td><td>Work configuration</td><td class="m">1</td><td class="m">04NN</td><td class="m">1</td><td class="m">1</td><td><span class="badge o">O</span></td></tr>
+        <tr><td class="m">Y7NN</td><td>Load work</td><td class="m">48/56/72 + CRC</td><td class="m">zeros</td><td class="m">48/56/72</td><td class="m">5</td><td><span class="badge v">V</span></td></tr>
+        <tr><td class="m">0800</td><td>Poll result</td><td class="m">—</td><td class="m">echo <i>or</i> Y8NN</td><td class="m">5 + CRC</td><td class="m">10</td><td><span class="badge v">V</span></td></tr>
+        <tr><td class="m">09NN</td><td>Write register</td><td class="m">3 + CRC</td><td class="m">09NN</td><td class="m">3</td><td class="m">5</td><td><span class="badge v">V</span></td></tr>
+        <tr><td class="m">0ANN</td><td>Read register</td><td class="m">1</td><td class="m">1ANN</td><td class="m">3 + CRC</td><td class="m">5</td><td><span class="badge v">V</span></td></tr>
+        <tr><td class="m">0BNN</td><td>Self-test, phase 2</td><td class="m">—</td><td class="m">echo</td><td class="m">—</td><td class="m">0</td><td><span class="badge v">V</span></td></tr>
+        <tr><td class="m">0C00</td><td>Unknown</td><td class="m">5</td><td class="m">0C00</td><td class="m">15 + CRC</td><td class="m">—</td><td><span class="badge s">S</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3><span class="num">7.1</span>Self-test — 01NN, 0BNN, 03NN</h3>
+  <div class="col">
+    <p>Always issued as a broadcast triple in the order <code>01</code> → <code>0B</code> → <code>03</code>, with no payload and no retries. Any non-zero return from any of the three is treated as a single self-test failure. Their individual meanings are not distinguished by the controller.</p>
+  </div>
+
+  <h3><span class="num">7.2</span>Auto-address — 0200</h3>
+  <div class="col">
+    <p>Broadcast with one payload packet of <code>0x0000</code>. The 16‑bit reply payload is the <b>number of chips on the chain</b>. Chips take addresses 1…N. This must succeed before any addressed command is meaningful.</p>
+  </div>
+<pre>TX   A5 3C | 02 00 | 00 00 | 00 00
+RX   A5 3C | 02 00 | nn nn | 00 00        <span class="c">nnnn = chip count</span></pre>
+
+  <h3><span class="num">7.3</span>Work configuration — 04NN</h3>
+  <div class="col">
+    <p>One payload packet, broadcast immediately before every work load. The controller always sends the constant <code>0x00E5</code>. The field layout is unknown — see §13.2.</p>
+  </div>
+
+  <h3><span class="num">7.4</span>Load work — Y7NN</h3>
+  <div class="col">
+    <p>Broadcast, with the work ID in the tag nibble and the work payload of §9 as the packet body, CRC included. The expected reply is an all-zero frame of the same length.</p>
+  </div>
+<pre>ic_cmd(dev, 0x0400,                   /*addr*/ 0, &amp;(uint16_t){htobe16(0x00E5)}, /*retry*/ 1);
+ic_cmd(dev, 0x0700 | (work_id &lt;&lt; 12), /*addr*/ 0, work_payload,                 /*retry*/ 5);</pre>
+
+  <h3><span class="num">7.5</span>Poll result — 0800</h3>
+  <div class="col">
+    <p>Broadcast, no payload. An echo of <code>0800</code> means the chain has nothing. A reply command word of <code>Y8NN</code> carries one result, decoded in §10. Poll repeatedly; there is no other notification path.</p>
+  </div>
+
+  <h3><span class="num">7.6</span>Register access — 09NN and 0ANN</h3>
+<pre><span class="c">read</span>
+TX   A5 3C | 0A NN | rr rr |                   | 00 00
+RX   A5 3C | 1A NN | ss ss | vv vv | ww ww | crc | 00 00     <span class="c">value = vvvv:wwww</span>
+
+<span class="c">write</span>
+TX   A5 3C | 09 NN | rr rr | hh hh | ll ll | crc | 00 00
+RX   A5 3C | 09 NN | 00 00 | 00 00 | 00 00 |     | 00 00</pre>
+  <div class="col">
+    <p>Register numbers and values are transmitted big-endian within their packets. A read returns the 32‑bit value as reply packets 1 and 2, high word first; packet 0 is a status word the controller ignores.</p>
+  </div>
+</section>
+
+<section id="s8">
+  <h2><span class="num">8</span>Register map</h2>
+  <div class="tw">
+    <table>
+      <caption>Table 8‑1 · Registers exercised by the controller</caption>
+      <thead><tr><th class="m">Reg</th><th>Function</th><th class="m">Fields</th><th>Description</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td class="m">0</td><td>PLL control</td><td class="m">[24:16] NF<br>[9:8] OD sel<br>[6:4] NR<br>[7] bypass</td><td>Read-modify-write under mask <code>0xFE00FC8F</code>. Bit 7 is cleared after loading dividers to engage the new clock. §11.</td><td><span class="badge v">V</span></td></tr>
+        <tr><td class="m">3</td><td>Good core count</td><td class="m">[7:0]</td><td>Read once per chip during bring-up and summed for the chain. A read failure aborts initialization.</td><td><span class="badge v">V</span></td></tr>
+        <tr><td class="m">4</td><td>Chain start</td><td class="m">[31:28] see §13.1<br>[15:0] 0x03F1</td><td>Broadcast once as the final bring-up step; this is what starts the chain hashing. Written, never read. Values observed: <code>0x800003F1</code> and <code>0x700003F1</code>. Bit 31 is <b>not</b> an enable — it is clear on products that hash normally.</td><td><span class="badge v">V</span></td></tr>
+        <tr><td class="m">6</td><td>Sensor mode</td><td class="m">bits 3, 2, 0</td><td>Mode 0: set 3 and 2, clear 0. Mode 1: clear 3, set 2, clear 0. Bring-up uses mode 0.</td><td><span class="badge v">V</span></td></tr>
+        <tr><td class="m">7</td><td>Sensor data / period</td><td class="m">[31:16] period<br>[11:0] reading</td><td>Period written as <code>ms × 1000000 / 45000</code>; bring-up passes 25, giving 555. Reading is a raw code converted through §12.</td><td><span class="badge v">V</span></td></tr>
+        <tr><td class="m">0xFFFF</td><td>Identify</td><td class="m">—</td><td>A read helper exists in the controller but no product calls it. Response format unknown.</td><td><span class="badge o">O</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col">
+    <p>Registers 1, 2, 5 and everything above 7 are untouched by the controller. Their existence is neither confirmed nor excluded.</p>
+  </div>
+</section>
+
+<section id="s9">
+  <h2><span class="num">9</span>Work payload</h2>
+  <div class="col">
+    <p>All three bound parts share the same first 0x50 bytes — the 80‑byte Siacoin-style header — and the same trailer shape: a 64‑bit target bound followed by a 64‑bit nonce ceiling. They differ in whether a second header block sits between them, and in the resulting length.</p>
+  </div>
+  <div class="tw">
+    <table>
+      <caption>Table 9‑1 · Work payload layouts</caption>
+      <thead><tr><th class="m">Offset</th><th class="m">ICT580 · 96 B</th><th class="m">ICC590 · 144 B</th><th class="m">ICA586 · 112 B</th></tr></thead>
+      <tbody>
+        <tr><td class="m">0x00</td><td class="m" colspan="3">32 B — header block 1 (parent / previous block ID)</td></tr>
+        <tr><td class="m">0x20</td><td class="m" colspan="3">8 B — nonce, starting value</td></tr>
+        <tr><td class="m">0x28</td><td class="m" colspan="3">8 B — timestamp (written as two 32‑bit stores)</td></tr>
+        <tr><td class="m">0x30</td><td class="m" colspan="3">32 B — header block 2 (merkle / tree root)</td></tr>
+        <tr><td class="m">0x50</td><td class="m">target hi</td><td class="m">48 B — header block 3</td><td class="m">— reserved —</td></tr>
+        <tr><td class="m">0x54</td><td class="m">target lo</td><td class="m">↓</td><td class="m">↓</td></tr>
+        <tr><td class="m">0x58</td><td class="m">nonce ceiling (8 B)</td><td class="m">↓</td><td class="m">↓</td></tr>
+        <tr><td class="m">0x60</td><td class="m">—</td><td class="m">↓</td><td class="m">target hi, then bytes 0x60/0x61 overwritten with 0x13 / 0xDF</td></tr>
+        <tr><td class="m">0x64</td><td class="m">—</td><td class="m">↓</td><td class="m">target lo</td></tr>
+        <tr><td class="m">0x68</td><td class="m">—</td><td class="m">↓</td><td class="m">nonce ceiling (8 B)</td></tr>
+        <tr><td class="m">0x80</td><td class="m">—</td><td class="m">target hi</td><td class="m">—</td></tr>
+        <tr><td class="m">0x84</td><td class="m">—</td><td class="m">target lo</td><td class="m">—</td></tr>
+        <tr><td class="m">0x88</td><td class="m">—</td><td class="m">nonce ceiling (8 B)</td><td class="m">—</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col">
+    <p><b>Header.</b> Copied verbatim from the block header with no byte swapping. The chip performs the whole Blake2B compression itself; no midstate is supplied.</p>
+    <p><b>Target.</b> The top 64 bits of the 256‑bit target, as two 32‑bit words each byte-swapped — high word from target bytes [28:32], low word from [24:28]. The difficulty behind it is <code>min(device_minimum, work_difficulty)</code>, so a pool asking for less work than the device floor gets the device floor.</p>
+    <p><b>Nonce ceiling.</b> <code>0x0000FFFFFFFFFFFF</code> (48 bits) on ICT580 and ICC590; <code>0x00003FFFFFFFFFFF</code> (46 bits) on ICA586.</p>
+    <p><b>Distribution.</b> Work is broadcast to address 0 — every chip receives the same payload and the same starting nonce. The split across chips and cores is internal to the chain.</p>
+  </div>
+  <div class="spec-note">
+    <b><span class="badge s">S</span> The two ICA586 bytes.</b> On ICA586 the constants <code>0x13</code> and <code>0xDF</code> are stored at payload offsets 0x60 and 0x61 <i>after</i> the target words are written there, so they overwrite the top two bytes of the target bound. Speculatively this pins the top of the comparison window to a fixed value, implying the chip compares only a limited range and the upper bits carry something else. No evidence either way — it is simply what the code does.
+  </div>
+</section>
+
+<section id="s10">
+  <h2><span class="num">10</span>Result report</h2>
+  <div class="col">
+    <p>A reply to <code>0800</code> with command word <code>0xY8NN</code> carries five payload packets and a CRC.</p>
+  </div>
+  <div class="tw">
+    <table>
+      <caption>Table 10‑1 · Result fields</caption>
+      <thead><tr><th class="m">Source</th><th>Field</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td class="m">cmd [15:12]</td><td>Work ID</td><td>The tag of the work item this result belongs to. Results tagged with a retired ID are discarded by the host.</td></tr>
+        <tr><td class="m">cmd [7:0]</td><td>Chip address</td><td>Which chip produced it.</td></tr>
+        <tr><td class="m">pkt 0–1</td><td>Nonce, low 32 bits</td><td rowspan="2">Assembled as <code>(pkt1 &lt;&lt; 16) | pkt0</code> and <code>(pkt3 &lt;&lt; 16) | pkt2</code>. The 8 bytes written into the header at offset 32 are the low word little-endian followed by the high word little-endian.</td></tr>
+        <tr><td class="m">pkt 2–3</td><td>Nonce, high 32 bits</td></tr>
+        <tr><td class="m">pkt 4, low byte</td><td>Timestamp index</td><td>Which rolled timestamp the result is against.</td></tr>
+        <tr><td class="m">pkt 4, high byte</td><td>Core ID</td><td>Which core within the chip.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col">
+    <p>The host treats two conditions as fatal and re-initializes the chain: ten consecutive failed polls, and zero results across a whole supervision window.</p>
+  </div>
+</section>
+
+<section id="s11">
+  <h2><span class="num">11</span>Clock</h2>
+  <div class="col">
+    <p>Reference is 25 MHz. Setting a frequency is a table search for a post-divider that puts the feedback divider inside its legal window, then one read-modify-write of register 0 and one bit clear.</p>
+  </div>
+<pre><span class="c">/* identical table in all four back-ends */</span>
+<span class="k">static const struct</span> { <span class="k">int</span> div, nr, od; } tbl[] = {
+    {48,6,2}, {32,4,2}, {24,6,1}, {16,4,1}, {8,2,1}, {6,6,0}, {2,2,0}, {1,1,0}, {0,0,0}
+};
+
+<span class="k">for</span> (i = 0; tbl[i].div; i++) {
+    nf = (<span class="k">int</span>)(tbl[i].div * mhz / 25.0);
+    <span class="k">if</span> (nf &gt; 0x14 &amp;&amp; nf &lt;= 0x77) <span class="k">break</span>;          <span class="c">/* 21 … 119 */</span>
+}
+actual_mhz = nf * 25.0 / tbl[i].div;
+
+r0 = read_reg(chip, 0);
+r0 = (r0 &amp; 0xFE00FC8F) | (nf &lt;&lt; 16) | (tbl[i].od &lt;&lt; 8) | (tbl[i].nr &lt;&lt; 4);
+write_reg(chip, 0, r0);
+write_reg(chip, 0, read_reg(chip, 0) &amp; ~0x80);        <span class="c">/* release bypass */</span></pre>
+  <div class="col">
+    <p>Bring-up sets 50 MHz before self-test, then ramps to 500 MHz once the chain has enumerated. A failure of the ramp is logged but not fatal. Thereafter a thermal loop walks individual chips down as they approach the product's temperature target.</p>
+  </div>
+</section>
+
+<section id="s12">
+  <h2><span class="num">12</span>Thermal</h2>
+  <div class="col">
+    <p>Per-chip temperature is register 7, low 12 bits, converted through a 156‑entry monotonic lookup table compiled into the controller. Raw <code>2804</code> is 125 °C and raw <code>3420</code> is −30 °C, roughly four counts per degree. The lookup takes the first entry whose threshold is at or above the raw code; a code past the end of the table yields −35, the out-of-range sentinel.</p>
+    <p>This is distinct from the board sensors — one or two TMP112 parts per CPB on I²C — which provide the intake and exhaust readings and the hard thermal cutoff (85 °C to 90 °C depending on product).</p>
+  </div>
+</section>
+
+<section id="s13">
+  <h2><span class="num">13</span>Unknowns and speculation</h2>
+  <div class="col">
+    <p>Everything in this section is either unexplained or inferred. None of it is required to drive the device — the sequence in §14 works without understanding any of it.</p>
+  </div>
+
+  <h3><span class="num">13.1</span>Register 4, bits [31:28]</h3>
+  <div class="col">
+    <p><b>Observation.</b> Register 4 takes exactly two values across every product examined: <code>0x800003F1</code> and <code>0x700003F1</code>. The low 16 bits are identical everywhere — <code>0x03F1</code>, decimal 1009 — across chains of 16 to 96 chips and three chip families. Only the top nibble moves, and it is stable per product across every firmware version.</p>
+    <p><b>Ruled out.</b> Not a chip parameter: ICT580 appears with both values, ICC590 appears with both, and ICA586 joins the <code>7</code> group. Not CPB count — 3 and 4 CPBs appear on both sides. Not wifi, which flips between firmware versions of a single product while the register does not. Not cores per chip (80 and 20 appear on both sides), and not total cores per chain, which is inverted: 2,880 cores reads <code>8</code> while 1,920 reads <code>7</code>.</p>
+    <p><b>Still correlated.</b> Chips per chain (≥84 vs ≤46), series level (≥28 vs ≤23), board rows (≥28 vs ≤23) and chips per board row (3 vs 2) all separate the sample identically and cannot be told apart from these products.</p>
+  </div>
+  <div class="tw">
+    <table>
+      <caption>Table 13‑1 · Register 4 against topology, all products</caption>
+      <thead><tr><th>Product</th><th>Chip</th><th class="m">Chips/chain</th><th class="m">Cores/chip</th><th class="m">Series</th><th class="m">Board</th><th class="m">Register 4</th></tr></thead>
+      <tbody>
+        <tr><td>HS6</td><td>ICC590</td><td class="m">96</td><td class="m">20</td><td class="m">32</td><td class="m">32 × 3</td><td class="m">0x700003F1</td></tr>
+        <tr><td>HS6‑SE</td><td>ICC590</td><td class="m">84</td><td class="m">20</td><td class="m">32</td><td class="m">28 × 3</td><td class="m">0x700003F1</td></tr>
+        <tr><td>SC6‑SE</td><td>ICT580</td><td class="m">84</td><td class="m">80</td><td class="m">32</td><td class="m">28 × 3</td><td class="m">0x700003F1</td></tr>
+        <tr><td>SC5 Pro II</td><td>ICA586</td><td class="m">84</td><td class="m">20</td><td class="m">28</td><td class="m">28 × 3</td><td class="m">0x700003F1</td></tr>
+        <tr><td>HS3 / HS5 / HS‑LITE</td><td>ICC590</td><td class="m">46</td><td class="m">20</td><td class="m">23</td><td class="m">23 × 2</td><td class="m">0x800003F1</td></tr>
+        <tr><td>SCBox II</td><td>ICT580</td><td class="m">36</td><td class="m">80</td><td class="m">8</td><td class="m">18 × 2</td><td class="m">0x800003F1</td></tr>
+        <tr><td>HS‑BOX II</td><td>ICC590</td><td class="m">36</td><td class="m">20</td><td class="m">8</td><td class="m">18 × 2</td><td class="m">0x800003F1</td></tr>
+        <tr><td>SCBox / HS‑BOX / HS3‑SE</td><td>ICT580 / ICC590</td><td class="m">16</td><td class="m">80 / 20</td><td class="m">8</td><td class="m">8 × 2</td><td class="m">0x800003F1</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="spec-note">
+    <b><span class="badge s">S</span> Index-budget hypothesis.</b> The observed values are reproduced exactly, on all twelve products, by: <i>give each chip the largest power-of-two block of index slots, capped at 256, such that the whole chain fits in 2¹⁴ slots</i> — equivalently <code>min(8, 14 − ceil(log₂ chips))</code>. 16, 36 and 46‑chip chains take 256 slots each; 84 and 96‑chip chains cannot fit 256 apiece and drop to 128.
+    <br><br>The 14 is not free once the low field is considered. With a step of 1009 a 2²⁴ nonce window holds 16,627 steps, and the largest power of two that fits is exactly 2¹⁴ — 16,384 slots spanning 16,531,456 nonces, 98.5% of the window. On this reading the register holds one arrangement in two fields: 1009 is the distance between slots, and the top nibble is how many of the 14 index bits each chip keeps once the chain has taken its share. It also motivates 1009 itself — the largest prime below 1024, which buys the same 14‑bit index as a stride of 1024 while decorrelating the pattern.
+    <br><br><b>Against it:</b> the 2²⁴ window is inferred and appears nowhere in the firmware; a stride of 1024 would give the same 14 bits, so the arithmetic is consistent with 1009 rather than evidence for it; the cap at 8 is unexplained; and cores per chip never enters, which sits badly with reading the slots as core slots — 128 slots is six times what a 20‑core part needs. The three rival correlations fit the observations equally well.
+    <br><br><b>Prediction.</b> 128 chips still reads <code>7</code> (128 × 128 = 16,384 exactly); the first <code>6</code> appears at 129 chips. Nothing in this family passes 96, so any longer chain tests it — as would reading register 4 back off live silicon, which no firmware here ever does.
+  </div>
+
+  <h3><span class="num">13.2</span>The 0x00E5 operand</h3>
+  <div class="col">
+    <p>Command <code>04NN</code> is broadcast with the payload <code>0x00E5</code> before every work load, on every product and every chip family. It is a compile-time constant with no configuration path, so no field structure can be inferred from usage. <span class="badge s">S</span> Speculatively it is a per-work configuration word — a ticket threshold, a scan-window length, or a mode select — because of where it sits in the sequence. There is no evidence for any of those readings.</p>
+  </div>
+
+  <h3><span class="num">13.3</span>Command 0C00 / 1C00</h3>
+  <div class="col">
+    <p>Defined in all four command tables with a 5‑packet request and a 15‑packet reply plus CRC, and issued by nothing. <span class="badge s">S</span> The 15‑packet reply is three times the 5‑packet result frame, so a batched result read is a plausible guess; equally it could be a production-test or fusing path. No evidence.</p>
+  </div>
+
+  <h3><span class="num">13.4</span>Voltage control</h3>
+  <div class="col">
+    <p>Each CPB declares an ISL8118 regulator reached over three GPIOs with a serial power mode, but the mining controller's voltage setter is a pass-through that only stores the requested value. <span class="badge o">O</span> The rail is therefore programmed by something else in the system, or is fixed in hardware. Nothing in the mining path drives it.</p>
+  </div>
+
+  <h3><span class="num">13.5</span>Nonce partitioning</h3>
+  <div class="col">
+    <p>Every chip receives an identical broadcast work item with an identical starting nonce, and results come back tagged with chip and core. How the chain divides the search space is therefore entirely internal. <span class="badge s">S</span> If the 1009 step is a stride between per-core slots, §13.1 describes a partition that would work; that is a hypothesis about the silicon, not an observation of it.</p>
+  </div>
+</section>
+
+<section id="s14">
+  <h2><span class="num">14</span>Initialization</h2>
+  <div class="col">
+    <p>The normative bring-up order. Steps 1–5 are board-level; from step 6 everything is on the bus. Any failure restarts the whole sequence, up to five attempts, before the chain is declared dead.</p>
+  </div>
+  <ol class="seq">
+    <li><b>Assert reset</b><span>Reset GPIO low, hold 10 ms.</span></li>
+    <li><b>Assert enable low</b><span>Chain enable GPIO low, hold 20 ms.</span></li>
+    <li><b>Set target voltage</b><span>Store the configured rail voltage. Not driven from the mining path — see §13.4.</span></li>
+    <li><b>Power the board</b><span>Request the power-enable GPIO and drive it high.</span></li>
+    <li><b>Release reset</b><span>Reset low for 50 ms, then high.</span></li>
+    <li><b>Enumerate</b><span>Broadcast <code>0200</code> with one zero packet. The reply payload is the chip count.</span></li>
+    <li><b>Configure sensors</b><span>Register 6 to mode 0; register 7 period field to 25 ms (value 555).</span></li>
+    <li><b>Set 50 MHz</b><span>PLL sequence of §11, broadcast.</span></li>
+    <li><b>Assert enable high</b><span>Enable GPIO high, hold 20 ms.</span></li>
+    <li><b>Self-test</b><span>Broadcast <code>0100</code>, then <code>0B00</code>, then <code>0300</code>.</span></li>
+    <li><b>Read good cores</b><span>Register 3 from each chip 1…N; sum for the chain.</span></li>
+    <li><b>Ramp to 500 MHz</b><span>Adaptive clock step. Failure here is logged, not fatal.</span></li>
+    <li><b>Start hashing</b><span>Broadcast write of register 4 (§8), then wait 5 s before the first work load.</span></li>
+  </ol>
+</section>
+
+<section id="s15">
+  <h2><span class="num">15</span>Board signals</h2>
+  <div class="tw">
+    <table>
+      <caption>Table 15‑1 · Per-CPB host signals, from the controller's configuration file</caption>
+      <thead><tr><th>Signal</th><th>Type</th><th>Function</th></tr></thead>
+      <tbody>
+        <tr><td class="m">reset</td><td>GPIO out</td><td>Chain reset, active low. Pulsed at bring-up.</td></tr>
+        <tr><td class="m">enable</td><td>GPIO out</td><td>Chain enable. Held low across PLL setup, raised before self-test.</td></tr>
+        <tr><td class="m">plugin</td><td>GPIO out</td><td>Board power enable. Driven high once at bring-up.</td></tr>
+        <tr><td class="m">power.gpio0/1/2</td><td>GPIO out</td><td>ISL8118 rail select. Declared but not driven by the mining path.</td></tr>
+        <tr><td class="m">tsensor</td><td>I²C</td><td>One or two TMP112 per CPB, addresses 0x48 / 0x4A.</td></tr>
+        <tr><td class="m">spipath</td><td>SPI</td><td>One spidev node per CPB.</td></tr>
+        <tr><td class="m">fans</td><td>PWM + tach</td><td>Two to four fans per miner, shared across CPBs.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="s16">
+  <h2><span class="num">16</span>Provenance</h2>
+  <div class="col">
+    <p>The interface described here was established by static analysis of the <code>gsb3</code> back-end of Goldshell's <code>intminer</code>, an ARM Thumb‑2 program, across 63 firmware images: 46 <code>.cpb</code> update packages covering 11 products, plus one 256 MB factory burn image. No silicon documentation was consulted and no bus capture was taken, so <b>nothing here has been confirmed against hardware.</b></p>
+    <p>The code listings in §5, §7 and §11 were written for this document to express the algorithms in a readable form. They are illustrations, not disassembly output.</p>
+    <p>Everything here describes what one controller implementation does, which is a lower bound on what the silicon can do. Where the firmware and the device disagree, the device is right. Two areas are most likely to hide a discrepancy: the meaning of fields the controller writes blindly and never reads back (register 4, the <code>0x00E5</code> operand), and any device behaviour the controller never exercises — registers 1, 2 and 5, command <code>0C00</code>, and whatever the chain does when a command arrives out of the expected order.</p>
+  </div>
+</section>
+
+<section id="sa">
+  <h2><span class="num">A</span>Appendix — firmware containers</h2>
+  <div class="col">
+    <p>How to get from a distributed firmware file to the controller binary. Three layers, none encrypted; the signature files that accompany the payloads are not checked anywhere in the extraction path.</p>
+
+    <h3><span class="num">A.1</span>.cpb update package</h3>
+    <p>A concatenation of sections, each with a 512‑byte header: a NUL‑padded name in bytes 0–127 and the payload length as a little-endian <code>uint32</code> at offset <code>0x80</code>. The payload — a gzipped tar — begins immediately after the header, and the next header is 512‑byte aligned. Headers after the first are written into a dirty buffer, so only the name field is reliable; scanning for gzip magic at 512‑byte boundaries and inflating is more robust than trusting the declared length.</p>
+
+    <h3><span class="num">A.2</span>.ius firmware image</h3>
+    <p>Each tar holds <code>firmware.ius</code> plus a detached signature. The image is Ingenic-style: magic <code>+ius</code>, version string at <code>0x10</code>, section count at <code>0x1c</code>, then 16‑byte descriptors from <code>0x2c</code> of the form <code>{u32 size, u32 dest_lba, u32 index, u32 erase_block}</code>. Payloads start at <code>0x200</code>, each padded to a 1 KiB boundary. Sections are u‑boot, an environment blob, a ramdisk uImage, one or two kernel uImages, and the root filesystem.</p>
+
+    <h3><span class="num">A.3</span>Root filesystem</h3>
+    <p>Squashfs on the small images, a 32 MiB ext4 volume on the large ones; <code>unsquashfs</code> and <code>debugfs -R rdump</code> respectively. The controller is <code>/usr/bin/intminer</code> and the board description is <code>/root/product.json</code>. Factory burn images are a different shape: a 256 MB eMMC image with an MBR, one empty FAT configuration partition, and the boot chain written raw outside it at fixed sector offsets rather than at the <code>dest_lba</code> values the <code>.ius</code> descriptors carry.</p>
+  </div>
+</section>
+
+<footer>
+  Intchains ASIC host interface · rev 0.2 · established by static analysis of Goldshell intminer 2.2.x<br>
+  Status of every claim is marked inline: <span class="badge v">V</span> verified · <span class="badge o">O</span> observed · <span class="badge s">S</span> speculative.
+</footer>
+
+</div>
+</body>
+</html>

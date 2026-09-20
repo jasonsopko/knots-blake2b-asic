@@ -1,0 +1,6 @@
+build/
+build-arm/
+tb/*.mem
+*.o
+*.a
+*.vcd
